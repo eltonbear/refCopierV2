@@ -6,37 +6,61 @@ from util import splitFileFolderAndName
 import re
 
 class excelSheet():
-	def __init__(self):
+	def __init__(self, withFocus):
+		### Device
+		self.withFocus = withFocus
 		### Set columns
 		self.statusC = 'A'
 		self.refC = 'B'
 		self.copyC = 'C'
 		self.typeC = 'D'
-		self.depC = 'E'
-		self.wireSCountC = 'F'
-		self.wireDCountC = 'G'
-		self.wireNewDcountC = 'H'
+		self.deviceC = 'E'
+		self.streDeviceC = 'F'
+		if(withFocus):
+			self.focusHC = 'G'
+			self.depC = 'H'
+			self.wireSCountC = 'I'
+			self.wireDCountC = 'J'
+			self.wireNewDcountC = 'K'
+			self.warningC = 'L'
+			### Others
+			self.hiddenRowsC = 'M'
+			self.vbaButtonC = 'N'
+			### Pseudo	
+			self.pseudoRefC = 'P'
+			self.realRefC = 'Q'
+			self.pseudoCountC = 'R'
+			self.wirePseudoCountSC = 'S'
+			self.wirePseudoCountDC = 'T'
+		else:
+			self.depC = 'G'
+			self.wireSCountC = 'H'
+			self.wireDCountC = 'I'
+			self.wireNewDcountC = 'J'
+			self.warningC = 'K'
+			### Others
+			self.hiddenRowsC = 'L'
+			self.vbaButtonC = 'M'
+			### Pseudo	
+			self.pseudoRefC = 'O'
+			self.realRefC = 'P'
+			self.pseudoCountC = 'Q'
+			self.wirePseudoCountSC = 'R'
+			self.wirePseudoCountDC = 'S'
 		self.hiddenRefC='U'
-		self.vbaButtonC = 'J'
-		self.pseudoRefC = 'L'
-		self.realRefC = 'M'
-		self.pseudoCountC = 'N'
-		self.wirePseudoCountSC = 'O'
-		self.wirePseudoCountDC = 'P'
 		### Set rows
 		self.titleRow = '1'
 		self.firstInputRow = str(int(self.titleRow) + 1)
 		self.pseudoTitleRow = '6'
 		### Set cell address
-		self.xmlFilePathCell ='M1'
-		self.wireTagCell = 'M3'
-		self.wireCountCell = 'M4'
-		self.hiddenRowsC = 'I'
+		self.xmlFilePathCell = self.realRefC + '1'
+		self.wireTagCell = self.realRefC + '3'
+		self.wireCountCell = self.realRefC + '4'		
 		self.lastAppendRowCell = self.hiddenRowsC + '4'
 		self.appendRowCountCell = self.hiddenRowsC + '3' 
 		self.lastRefRowBeforeMacroCell = self.hiddenRowsC + '2'
 		self.hiddenLastExistingRefRowCell = self.hiddenRowsC + '1'
-		### Set rag names
+		### Set tag names
 		self.mTag = 'missing'
 		self.eTag = 'existing'
 		self.aTag = 'appending'
@@ -61,7 +85,7 @@ class excelSheet():
 
 		### get folder name and xml file name without extension/ name xlsm file path
 		xmlFolderPath, xmlFileName = splitFileFolderAndName(xmlFilePath)
-		xlsxFileName = xmlFileName + '_instruction.xlsm'
+		xlsxFileName = xmlFileName + '_instruction.xlsx'
 		xlsxFilePath = xmlFolderPath + '/' + xlsxFileName
 		### creat workbook and worksheet
 		workbook = xlsxwriter.Workbook(xlsxFilePath)
@@ -96,12 +120,16 @@ class excelSheet():
 		worksheet.set_column(self.statusC + ':' + self.statusC, 9)
 		worksheet.set_column(self.refC + ':' + self.refC, 20)
 		worksheet.set_column(self.typeC + ':' + self.typeC, 14)
+		worksheet.set_column(self.deviceC + ':' + self.deviceC, 10)
+		worksheet.set_column(self.streDeviceC + ':' + self.streDeviceC, 14)
+		if (self.withFocus):
+			worksheet.set_column(self.focusHC + ':' + self.focusHC, 12)
 		worksheet.set_column(self.depC + ':' + self.depC, 17)
 		worksheet.set_column(self.wireSCountC + ':' + self.wireSCountC, 12)
 		worksheet.set_column(self.wireDCountC + ':' + self.wireDCountC, 12)
 		worksheet.set_column(self.wireNewDcountC + ':' + self.wireNewDcountC, 16)
+		worksheet.set_column(self.warningC + ':' + self.warningC, 10)
 		worksheet.set_column(self.hiddenRowsC + ':' + self.hiddenRowsC, 5)
-		worksheet.set_column(wireTagC + ':' + wireTagC, 10)
 		worksheet.set_column(wireTagC + ':' + wireTagC, 10)
 
 		### write title
@@ -109,10 +137,15 @@ class excelSheet():
 		worksheet.write(self.refC + self.titleRow, 'Reference Number (R)', titleF)
 		worksheet.write(self.copyC + self.titleRow, 'Copy (R)', titleF)
 		worksheet.write(self.typeC + self.titleRow, 'Reference Type', titleF)
+		worksheet.write(self.deviceC + self.titleRow, 'Device', titleF)
+		worksheet.write(self.streDeviceC + self.titleRow, 'Stretch Device', titleF)
+		if (self.withFocus):
+			worksheet.write(self.focusHC + self.titleRow, 'Focus Height', titleF)
 		worksheet.write(self.depC + self.titleRow, 'Dependent On (R)', titleF)
 		worksheet.write(self.wireSCountC + self.titleRow, 'Wire Count S', titleF)
 		worksheet.write(self.wireDCountC + self.titleRow, 'Wire Count D', titleF)
 		worksheet.write(self.wireNewDcountC + self.titleRow, 'Wire New Count D', titleF)
+		worksheet.write(self.warningC + self.titleRow, 'Warning', titleF)
 		worksheet.write(self.wireTagCell, "Wire Count", centerF)
 		worksheet.write(self.wireCountCell, wireSDInfo['total'], centerF)
 		worksheet.write(self.xmlFilePathCell, 'XML: ' + xmlFilePath)
@@ -265,20 +298,20 @@ class excelSheet():
 		worksheet.write(self.lastAppendRowCell, int(lastAppendRow),  existingWhiteBlockedF)
 		worksheet.write(self.hiddenLastExistingRefRowCell, int(refNumList[-1]) + int(self.titleRow),  existingWhiteBlockedF)
 
-		### import VBA
-		workbook.add_vba_project('vbaProject.bin')
-		workbook.set_vba_name("ThisWorkbook")
-		worksheet.set_vba_name("Sheet1")
-		### add VBA buttons
-		worksheet.insert_button(self.vbaButtonC + str(lastRefRow - 1), {'macro': 'appendARow',
-		                               								 	'caption': 'Append',
-		                               								 	'width': 128,
-		                              								 	'height': 40})
+		# ### import VBA
+		# workbook.add_vba_project('vbaProject.bin')
+		# workbook.set_vba_name("ThisWorkbook")
+		# worksheet.set_vba_name("Sheet1")
+		# ### add VBA buttons
+		# worksheet.insert_button(self.vbaButtonC + str(lastRefRow - 1), {'macro': 'appendARow',
+		#                                								 	'caption': 'Append',
+		#                                								 	'width': 128,
+		#                               								 	'height': 40})
 
-		worksheet.insert_button(self.vbaButtonC + str(int(fstAppendRow)+1), {'macro': 'undoRow',
-		                               								 		 'caption': 'UnAppend',
-		                               								 		 'width': 128,
-		                              								 		 'height': 40})
+		# worksheet.insert_button(self.vbaButtonC + str(int(fstAppendRow)+1), {'macro': 'undoRow',
+		                               								 		#  'caption': 'UnAppend',
+		                               								 		#  'width': 128,
+		                              								 		 # 'height': 40})
 		### merger two cells beteen the two buttons
 		worksheet.merge_range(self.vbaButtonC + str(lastRefRow + 1) + ':' +  chr(ord(self.vbaButtonC)+1) + str(lastRefRow + 1), None)
 

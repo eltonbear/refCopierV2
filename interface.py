@@ -349,7 +349,7 @@ def readXMLAndStartSheet(filePath):
 		return (errorFilePath, info)
 	else:  
 		# Create an excelSheet object
-		excelWrite = excelSheet()
+		excelWrite = excelSheet(True)
 		# Write data into an Excel spreadsheet
 		error = excelWrite.startNewExcelSheet(filePath, refInfo, wireInfo)
 		return ("", error)
