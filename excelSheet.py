@@ -199,6 +199,12 @@ class excelSheet():
 					worksheet.write(self.refC + rowS, refNumber,  missingTagAndRefF)
 					worksheet.write(self.copyC + rowS, None,  missingUnblockedF)
 					worksheet.write(self.typeC + rowS, None,  missingUnblockedF)
+					####
+					worksheet.write(self.deviceC + rowS, None,  missingUnblockedF)
+					worksheet.write(self.streDeviceC + rowS, None,  missingUnblockedF) ### format?
+					if (self.withFocus):
+						worksheet.write(self.focusHC + rowS, None,  missingUnblockedF)
+					####
 					worksheet.write(self.wireSCountC + rowS, 0, missingWireCountF)
 					worksheet.write(self.wireDCountC + rowS, 0, missingWireCountF)
 					### formulas for dependon cells
@@ -220,6 +226,12 @@ class excelSheet():
 					worksheet.write(self.hiddenRefC + str(refListIndex+1), int(refNumList[refListIndex]), existingWhiteBlockedF)
 					worksheet.write(self.copyC + rowS, self.copyBlockedText, copyBlockedF)
 					worksheet.write(self.typeC + rowS, refInfo['type'][refListIndex],  unlocked)
+					####
+					worksheet.write(self.deviceC + rowS, None,  unlocked)
+					worksheet.write(self.streDeviceC + rowS, None,  unlocked) ## format?
+					if (self.withFocus):
+						worksheet.write(self.focusHC + rowS, None,  unlocked) ## format?
+					####
 					worksheet.write(self.depC + rowS, refInfo['dependon'][refListIndex],  centerF)
 					### data validation for dep
 					listF = 'COUNTIF($' + self.hiddenRefC + '$1' + ':$' + self.hiddenRefC + '$' + lastHiddenRefRow + ',' + self.depC + rowS + ')=1'
@@ -256,6 +268,12 @@ class excelSheet():
 					worksheet.write(self.refC + rowS, refNumber, appendTagAndRefF)
 					worksheet.write(self.copyC + rowS, None, appendUnblockedF)
 					worksheet.write(self.typeC + rowS, None,  appendUnblockedF)
+					####
+					worksheet.write(self.deviceC + rowS, None,  appendUnblockedF)
+					worksheet.write(self.streDeviceC + rowS, None,  appendUnblockedF) ## format?
+					if (self.withFocus):
+						worksheet.write(self.focusHC + rowS, None,  appendUnblockedF)
+					####
 					worksheet.write(self.wireSCountC + rowS, 0, appendBlockedF)
 					worksheet.write(self.wireDCountC + rowS, 0, appendBlockedF)	
 					### formulas for dep and Wire new D Count cell
