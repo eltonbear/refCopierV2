@@ -53,6 +53,7 @@ class excelSheet():
 		self.firstInputRow = str(int(self.titleRow) + 1)
 		self.pseudoTitleRow = '6'
 		### Set cell address
+		self.hiddenIfFocusHeightCell = self.pseudoRefC + '1'
 		self.xmlFilePathCell = self.realRefC + '1'
 		self.wireTagCell = self.realRefC + '3'
 		self.wireCountCell = self.realRefC + '4'		
@@ -328,6 +329,10 @@ class excelSheet():
 			worksheet.write(self.appendRowCountCell, int(fstAppendRow),  existingWhiteBlockedF)
 		worksheet.write(self.lastAppendRowCell, int(lastAppendRow),  existingWhiteBlockedF)
 		worksheet.write(self.hiddenLastExistingRefRowCell, int(refNumList[-1]) + int(self.titleRow),  existingWhiteBlockedF)
+		if (self.withFocus):
+			worksheet.write(self.hiddenIfFocusHeightCell, 1,  existingWhiteBlockedF)
+		else:
+			worksheet.write(self.hiddenIfFocusHeightCell, 0,  existingWhiteBlockedF)
 
 		# ### import VBA
 		# workbook.add_vba_project('vbaProject.bin')
