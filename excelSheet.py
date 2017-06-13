@@ -289,17 +289,21 @@ class excelSheet():
 					####
 					worksheet.write(self.wireSCountC + rowS, 0, appendBlockedF)
 					worksheet.write(self.wireDCountC + rowS, 0, appendBlockedF)	
-					### formulas for dep and Wire new D Count cell
+					### formulas for dep, Wire new D Count, and warning cell
 					worksheet.write_formula(self.depC + rowS, '=' + self.copyC + rowS, appendBlockedF)
 					wireNewDFormula = '=IF(ISBLANK(' + self.copyC + rowS + '), 0, INDIRECT("' + self.wireDCountC + '"& ' + self.copyC + rowS + '+1))'
 					worksheet.write_formula(self.wireNewDcountC + rowS, wireNewDFormula, appendBlockedF)
-				
+					warningFormula = 'IF(OR('+ self.wireSCountC + rowS + '=0,'+ self.wireNewDcountC + rowS + '=0), "good","check")'
+					worksheet.write_formula(self.warningC + rowS, warningFormula, warningCheckF)
+									
 				### conditional formats for wire counts --> dont show values if there is no input in copy column
 				wireConditionalFormula = '=AND(ISBLANK(' + self.copyC + rowS + '), NOT(ISBLANK(' + self.statusC + rowS + ')))'
 				worksheet.conditional_format(self.depC + rowS, {'type': 'formula', 'criteria': wireConditionalFormula, 'format': appendHiddenZeroBlockedF})
 				worksheet.conditional_format(self.wireSCountC + rowS, {'type': 'formula', 'criteria': wireConditionalFormula, 'format': appendHiddenZeroBlockedF})
 				worksheet.conditional_format(self.wireDCountC + rowS, {'type': 'formula', 'criteria': wireConditionalFormula, 'format': appendHiddenZeroBlockedF})
 				worksheet.conditional_format(self.wireNewDcountC + rowS, {'type': 'formula', 'criteria': wireConditionalFormula, 'format': appendHiddenZeroBlockedF})
+				### conditional formats for warning
+				worksheet.conditional_format(self.warningC + rowS, {'type': 'text', 'criteria': 'containing', 'value': 'good', 'format': warningGoodF}) ##########???
 
 				### wire formula for datavalidation. it prevents duplicates and anything outside the list(it writes every row til the last appendable row becuase i dont want to do data validation in VBA)
 				f1 = 'COUNTIF($' + self.copyC + '$' + self.firstInputRow + ':$' + self.copyC + '$' + lastAppendRow + ',' + self.copyC + rowS + ')=1'
