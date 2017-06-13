@@ -109,9 +109,10 @@ class excelSheet():
 		appendUnblockedF =  workbook.add_format({'valign': 'vcenter', 'align': 'center', 'bg_color': '#92cddc', 'locked': 0,'border': 1, 'border_color': '#b2b2b2'})
 		appendBlockedF = workbook.add_format({'valign': 'vcenter', 'align': 'center', 'bg_color': '#92cddc', 'locked': 1, 'hidden': 1, 'border': 1, 'border_color': '#b2b2b2'})
 		appendHiddenZeroBlockedF = workbook.add_format({'bg_color': '#92cddc', 'font_color': '#92cddc', 'locked': 1, 'hidden': 1, 'border': 1, 'border_color': '#b2b2b2'})
-		pseudoRefLetter = workbook.add_format({'valign': 'vcenter', 'align': 'center', 'bg_color': '#c6efce', 'font_color': '#006100'})
-		pseudoCounts = workbook.add_format({'valign': 'vcenter', 'align': 'center', 'bg_color': '#c6efce'})
-
+		pseudoRefLetterF = workbook.add_format({'valign': 'vcenter', 'align': 'center', 'bg_color': '#c6efce', 'font_color': '#006100'})
+		pseudoCountsF = workbook.add_format({'valign': 'vcenter', 'align': 'center', 'bg_color': '#c6efce'})
+		warningGoodF = workbook.add_format({'valign': 'vcenter', 'align': 'center', 'bg_color': '#c6efce', 'font_color': '#006100'})
+		warningCheckF = workbook.add_format({'valign': 'vcenter', 'align': 'center', 'bg_color': '#FFEB9C', 'font_color': '#9c5700'})
 		### activate protection with password "elton"
 		worksheet.protect('elton')
 
@@ -175,18 +176,20 @@ class excelSheet():
 			sortedPseudo = sorted(pseudo.keys())
 			numPseudo = len(sortedPseudo)
 			for pseudoRef in sortedPseudo:
-				worksheet.write(self.pseudoRefC + pseudoRefRowS , pseudoRef, pseudoRefLetter)
+				worksheet.write(self.pseudoRefC + pseudoRefRowS , pseudoRef, pseudoRefLetterF)
 				worksheet.write(self.realRefC + pseudoRefRowS, None, unlocked)
-				worksheet.write(self.pseudoCountC + pseudoRefRowS , pseudo[pseudoRef], pseudoCounts)
-				worksheet.write(self.wirePseudoCountSC + pseudoRefRowS, len(wireSDInfo[pseudoRef]['s']), pseudoCounts)
-				worksheet.write(self.wirePseudoCountDC + pseudoRefRowS, len(wireSDInfo[pseudoRef]['d']), pseudoCounts)
+				worksheet.write(self.pseudoCountC + pseudoRefRowS , pseudo[pseudoRef], pseudoCountsF)
+				worksheet.write(self.wirePseudoCountSC + pseudoRefRowS, len(wireSDInfo[pseudoRef]['s']), pseudoCountsF)
+				worksheet.write(self.wirePseudoCountDC + pseudoRefRowS, len(wireSDInfo[pseudoRef]['d']), pseudoCountsF)
 				f1 = 'COUNTIF($' + self.realRefC + '$' + str(int(self.pseudoTitleRow)+1) + ':$' + self.realRefC + '$' + str(int(self.pseudoTitleRow)+numPseudo) + ',' + self.realRefC + pseudoRefRowS + ')=1'
 				f2 = 'COUNTIF($' + self.hiddenRefC + '$1' + ':$' + self.hiddenRefC + '$' + lastHiddenRefRow + ',' + self.realRefC + pseudoRefRowS + ')=1'
 				pseudoRefFormula = '=AND(' + f1 + ', ' + f2 + ')'
 				worksheet.data_validation(self.realRefC + pseudoRefRowS, {'validate': 'custom', 'value': pseudoRefFormula, 'error_title': 'Warning', 'error_message': 'Reference does not exist or Duplicates!', 'error_type': 'stop'})
 				pseudoRefRowS = str(int(pseudoRefRowS) + 1)
-
+		### Type drop down list
 		typeList = ['Default','NEWBENCH', 'AVX_S', 'AVX_D', 'PRSID_S', 'PRSID_D', 'TECDIA_S', 'TECDIA_D', 'PKGFLOOR', 'IC_S', 'IC_D', 'SIGE', 'RESIST_S', 'RESIST_D', 'TF_S', 'TF_D', 'COIN_S', 'COIN_D']
+		### Device drop down lsist
+		# deviceList = ['CAP', 'TF', 'IC', 'DCFEED']
 		refGapSet = set(refGap)
 		refNumber = 1	
 		refListIndex = 0
@@ -204,6 +207,7 @@ class excelSheet():
 					worksheet.write(self.streDeviceC + rowS, None,  missingUnblockedF) ### format?
 					if (self.withFocus):
 						worksheet.write(self.focusHC + rowS, None,  missingUnblockedF)
+						worksheet.data_validation(self.focusHC + rowS, {'validate': 'integer', 'criteria': 'between','minimum': -20,'maximum': 20, 'error_title': 'Warning', 'error_message': 'Value not in the range of -20 and 20!', 'error_type': 'stop'})
 					####
 					worksheet.write(self.wireSCountC + rowS, 0, missingWireCountF)
 					worksheet.write(self.wireDCountC + rowS, 0, missingWireCountF)
@@ -213,12 +217,16 @@ class excelSheet():
 					### formulas for wire new D Count cell
 					wireNewDFormula = '=IF(ISBLANK(' + self.copyC + rowS + '), 0, INDIRECT("' + self.wireDCountC + '"& ' + self.copyC + rowS + '+1))'
 					worksheet.write_formula(self.wireNewDcountC + rowS, wireNewDFormula, missingWireCountHiddenF)
+					### Formulas for warning
+					warningFormula = 'IF(OR('+ self.wireSCountC + rowS + '=0,'+ self.wireNewDcountC + rowS + '=0), "good","check")'
+					worksheet.write_formula(self.warningC + rowS, warningFormula, warningCheckF)
+					worksheet.conditional_format(self.warningC + rowS, {'type': 'text', 'criteria': 'containing', 'value': 'good', 'format': warningGoodF})
 					### wire formula for data validation. it prevents duplicates and anything outside the list
 					f1 = 'COUNTIF($' + self.copyC + '$' + self.firstInputRow + ':$' + self.copyC + '$' + lastAppendRow + ',' + self.copyC + rowS + ')=1'
 					f2 = 'COUNTIF($' + self.hiddenRefC + '$1' + ':$' + self.hiddenRefC + '$' + lastHiddenRefRow + ',' + self.copyC + rowS + ')=1'
 					countFormula = '=AND(' + f1 + ', ' + f2 + ')'
 					worksheet.data_validation(self.copyC + rowS, {'validate': 'custom', 'value': countFormula, 'error_title': 'Warning', 'error_message': 'Reference number does not exist or Duplicates!', 'error_type': 'stop'}) 
-					# Data validation for types
+					### Data validation for types
 					worksheet.data_validation(self.typeC + rowS, {'validate': 'list', 'source': typeList, 'error_title': 'Warning', 'error_message': 'Type does not exist in the library!', 'error_type': 'stop'}) 
 				else:  ### existing ref row
 					worksheet.write(self.statusC + rowS, self.eTag, existingWhiteBlockedF)
@@ -231,6 +239,7 @@ class excelSheet():
 					worksheet.write(self.streDeviceC + rowS, None,  unlocked) ## format?
 					if (self.withFocus):
 						worksheet.write(self.focusHC + rowS, None,  unlocked) ## format?
+						worksheet.data_validation(self.focusHC + rowS, {'validate': 'integer', 'criteria': 'between','minimum': -20,'maximum': 20, 'error_title': 'Warning', 'error_message': 'Value not in the range of -20 and 20!', 'error_type': 'stop'})
 					####
 					worksheet.write(self.depC + rowS, refInfo['dependon'][refListIndex],  centerF)
 					### data validation for dep
@@ -260,7 +269,10 @@ class excelSheet():
 						worksheet.write(self.wireDCountC + rowS, wireRefDCount, centerF)
 						wireNewDFormula = '=IF(COUNTIF(' + self.copyC + self.firstInputRow + ':' + self.copyC + lastAppendRow + ', ' + str(refNumber) + ') > 0, 0, ' + str(wireRefDCount) + ')'
 						worksheet.write_formula(self.wireNewDcountC + rowS, wireNewDFormula, centerHiddenF)
-
+					### Formulas for warning
+					warningFormula = 'IF(OR('+ self.wireSCountC + rowS + '=0,'+ self.wireNewDcountC + rowS + '=0), "good","check")'
+					worksheet.write_formula(self.warningC + rowS, warningFormula, warningCheckF)
+					worksheet.conditional_format(self.warningC + rowS, {'type': 'text', 'criteria': 'containing', 'value': 'good', 'format': warningGoodF})
 					refListIndex += 1
 			else: ### append section
 				if not refGap or rowS == fstAppendRow:
@@ -288,14 +300,15 @@ class excelSheet():
 				worksheet.conditional_format(self.wireDCountC + rowS, {'type': 'formula', 'criteria': wireConditionalFormula, 'format': appendHiddenZeroBlockedF})
 				worksheet.conditional_format(self.wireNewDcountC + rowS, {'type': 'formula', 'criteria': wireConditionalFormula, 'format': appendHiddenZeroBlockedF})
 
-				### wire formula for datavalidation. it prevents duplicates and anything outside the list(it writes every row til the last appendable row becuase i dont want to data validation in VBA)
+				### wire formula for datavalidation. it prevents duplicates and anything outside the list(it writes every row til the last appendable row becuase i dont want to do data validation in VBA)
 				f1 = 'COUNTIF($' + self.copyC + '$' + self.firstInputRow + ':$' + self.copyC + '$' + lastAppendRow + ',' + self.copyC + rowS + ')=1'
 				f2 = 'COUNTIF($' + self.hiddenRefC + '$1' + ':$' + self.hiddenRefC + '$' + lastHiddenRefRow + ',' + self.copyC + rowS + ')=1'
 				countFormula = '=AND(' + f1 + ', ' + f2 + ')'
 				worksheet.data_validation(self.copyC + rowS, {'validate': 'custom', 'value': countFormula, 'error_title': 'Warning', 'error_message': 'Reference number does not exist or Duplicates!', 'error_type': 'stop'})
 				# Data validation for types
 				worksheet.data_validation(self.typeC + rowS, {'validate': 'list', 'source': typeList, 'error_title': 'Warning', 'error_message': 'Type does not exist in the library!', 'error_type': 'stop'}) 	
-			
+				if (self.withFocus):
+					worksheet.data_validation(self.focusHC + rowS, {'validate': 'integer', 'criteria': 'between','minimum': -20,'maximum': 20, 'error_title': 'Warning', 'error_message': 'Value not in the range of -20 and 20!', 'error_type': 'stop'})
 			refNumber = refNumber + 1
 		### hidden info in excel sheet
 		if not refGap or int(fstAppendRow) > int(lastAppendRow): ### meaning no gaps or no appending section:
