@@ -87,7 +87,7 @@ class excelSheet():
 
 		### get folder name and xml file name without extension/ name xlsm file path
 		xmlFolderPath, xmlFileName = splitFileFolderAndName(xmlFilePath)
-		xlsxFileName = xmlFileName + '_instruction.xlsm'
+		xlsxFileName = xmlFileName + '_instruction.xlsx'
 		xlsxFilePath = xmlFolderPath + '/' + xlsxFileName
 		### creat workbook and worksheet
 		workbook = xlsxwriter.Workbook(xlsxFilePath)
@@ -230,7 +230,7 @@ class excelSheet():
 					countFormula = '=AND(' + f1 + ', ' + f2 + ')'
 					worksheet.data_validation(self.copyC + rowS, {'validate': 'custom', 'value': countFormula, 'error_title': 'Warning', 'error_message': 'Reference number does not exist or Duplicates!', 'error_type': 'stop'}) 
 					### Data validation for types
-					worksheet.data_validation(self.typeC + rowS, {'validate': 'list', 'source': typeList, 'error_title': 'Warning', 'error_message': 'Type does not exist in the library!', 'error_type': 'stop'}) 
+					worksheet.data_validation(self.typeC + rowS, {'validate': 'list', 'source': typeList, 'error_title': 'Warning', 'error_message': 'Type does not exist in the library!', 'error_type': 'warning'}) 
 				else:  ### existing ref row
 					worksheet.write(self.statusC + rowS, self.eTag, existingWhiteBlockedF)
 					worksheet.write(self.refC + rowS, refNumber, centerF)
@@ -249,7 +249,7 @@ class excelSheet():
 					listF = 'COUNTIF($' + self.hiddenRefC + '$1' + ':$' + self.hiddenRefC + '$' + lastHiddenRefRow + ',' + self.depC + rowS + ')=1'
 					worksheet.data_validation(self.depC + rowS, {'validate': 'custom', 'value': listF, 'error_title': 'Warning', 'error_message': 'Reference does not exist!', 'error_type': 'stop'})
 					# Data validation for types
-					worksheet.data_validation(self.typeC + rowS, {'validate': 'list', 'source': typeList, 'error_title': 'Warning', 'error_message': 'Type does not exist in the library!', 'error_type': 'stop'}) 
+					worksheet.data_validation(self.typeC + rowS, {'validate': 'list', 'source': typeList, 'error_title': 'Warning', 'error_message': 'Type does not exist in the library!', 'error_type': 'warning'}) 
 					### formulas for Wire new D Count cell
 					wireRefSCount = len(wireSDInfo[str(refNumber)]['s'])
 					wireRefDCount = len(wireSDInfo[str(refNumber)]['d'])
@@ -313,7 +313,7 @@ class excelSheet():
 				countFormula = '=AND(' + f1 + ', ' + f2 + ')'
 				worksheet.data_validation(self.copyC + rowS, {'validate': 'custom', 'value': countFormula, 'error_title': 'Warning', 'error_message': 'Reference number does not exist or Duplicates!', 'error_type': 'stop'})
 				# Data validation for types
-				worksheet.data_validation(self.typeC + rowS, {'validate': 'list', 'source': typeList, 'error_title': 'Warning', 'error_message': 'Type does not exist in the library!', 'error_type': 'stop'}) 	
+				worksheet.data_validation(self.typeC + rowS, {'validate': 'list', 'source': typeList, 'error_title': 'Warning', 'error_message': 'Type does not exist in the library!', 'error_type': 'warning'}) 	
 				if (self.withFocus):
 					worksheet.data_validation(self.focusHC + rowS, {'validate': 'integer', 'criteria': 'between','minimum': -20,'maximum': 20, 'error_title': 'Warning', 'error_message': 'Value not in the range of -20 and 20!', 'error_type': 'stop'})
 			refNumber = refNumber + 1
@@ -340,22 +340,22 @@ class excelSheet():
 		else:
 			worksheet.write(self.hiddenIfFocusHeightCell, 0,  existingWhiteBlockedF)
 		worksheet.write(self.hiddenIfFirstTimeOpenCell, 1, existingWhiteBlockedF)
-		### import VBA
-		workbook.add_vba_project('vbaProject.bin')
-		workbook.set_vba_name("ThisWorkbook")
-		worksheet.set_vba_name("Sheet1")
-		### add VBA buttons
-		worksheet.insert_button(self.vbaButtonC + str(lastRefRow - 1), {'macro': 'appendARow',
-		                               								 	'caption': 'Append',
-		                               								 	'width': 128,
-		                              								 	'height': 40})
+		# ### import VBA
+		# workbook.add_vba_project('vbaProject.bin')
+		# workbook.set_vba_name("ThisWorkbook")
+		# worksheet.set_vba_name("Sheet1")
+		# ### add VBA buttons
+		# worksheet.insert_button(self.vbaButtonC + str(lastRefRow - 1), {'macro': 'appendARow',
+		#                                								 	'caption': 'Append',
+		#                                								 	'width': 128,
+		#                               								 	'height': 40})
 
-		worksheet.insert_button(self.vbaButtonC + str(int(fstAppendRow)+1), {'macro': 'undoRow',
-		                               								 		 'caption': 'UnAppend',
-		                               								 		 'width': 128,
-		                              								 		 'height': 40})
-		### merger two cells beteen the two buttons
-		worksheet.merge_range(self.vbaButtonC + str(lastRefRow + 1) + ':' +  chr(ord(self.vbaButtonC)+1) + str(lastRefRow + 1), None)
+		# worksheet.insert_button(self.vbaButtonC + str(int(fstAppendRow)+1), {'macro': 'undoRow',
+		#                                								 		 'caption': 'UnAppend',
+		#                                								 		 'width': 128,
+		#                               								 		 'height': 40})
+		# ### merger two cells beteen the two buttons
+		# worksheet.merge_range(self.vbaButtonC + str(lastRefRow + 1) + ':' +  chr(ord(self.vbaButtonC)+1) + str(lastRefRow + 1), None)
 
 		### add comment
 		copyTitleComment = 'Input a name of any existing refernces from the XML file (number only).\nAll gaps need to be filled out'
