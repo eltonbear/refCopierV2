@@ -53,7 +53,8 @@ class excelSheet():
 		self.firstInputRow = str(int(self.titleRow) + 1)
 		self.pseudoTitleRow = '6'
 		### Set cell address
-		self.hiddenIfFocusHeightCell = self.pseudoRefC + '1'
+		self.hiddenIfFocusHeightCell = 'V1'
+		self.hiddenIfFirstTimeOpenCell = 'W1'
 		self.xmlFilePathCell = self.realRefC + '1'
 		self.wireTagCell = self.realRefC + '3'
 		self.wireCountCell = self.realRefC + '4'		
@@ -86,7 +87,7 @@ class excelSheet():
 
 		### get folder name and xml file name without extension/ name xlsm file path
 		xmlFolderPath, xmlFileName = splitFileFolderAndName(xmlFilePath)
-		xlsxFileName = xmlFileName + '_instruction.xlsx'
+		xlsxFileName = xmlFileName + '_instruction.xlsm'
 		xlsxFilePath = xmlFolderPath + '/' + xlsxFileName
 		### creat workbook and worksheet
 		workbook = xlsxwriter.Workbook(xlsxFilePath)
@@ -96,6 +97,7 @@ class excelSheet():
 		unlocked = workbook.add_format({'locked': 0, 'valign': 'vcenter', 'align': 'center'})
 		centerF = workbook.add_format({'valign': 'vcenter', 'align': 'center'})
 		centerHiddenF = workbook.add_format({'valign': 'vcenter', 'hidden': 1, 'align': 'center'})
+		centerBlankF = workbook.add_format({'valign': 'vcenter', 'hidden': 1, 'font_color': '#FFFFFF'})
 		titleF = workbook.add_format({'valign': 'vcenter', 'align': 'center', 'bg_color': '#b8cce0', 'font_color': '#1f497d', 'bold': True, 'bottom': 2, 'bottom_color': '#82a5d0'})
 		topBorderF = workbook.add_format({'top': 2, 'top_color': '#82a5d0'})
 		copyBlockedF = workbook.add_format({'bg_color': '#a6a6a6', 'font_color': '#a6a6a6'})
@@ -205,7 +207,7 @@ class excelSheet():
 					worksheet.write(self.typeC + rowS, None,  missingUnblockedF)
 					####
 					worksheet.write(self.deviceC + rowS, None,  missingUnblockedF)
-					worksheet.write(self.streDeviceC + rowS, None,  missingUnblockedF) ### format?
+					worksheet.write(self.streDeviceC + rowS, None,  missingDepBlockedBlankF) ### format?
 					if (self.withFocus):
 						worksheet.write(self.focusHC + rowS, None,  missingUnblockedF)
 						worksheet.data_validation(self.focusHC + rowS, {'validate': 'integer', 'criteria': 'between','minimum': -20,'maximum': 20, 'error_title': 'Warning', 'error_message': 'Value not in the range of -20 and 20!', 'error_type': 'stop'})
@@ -237,7 +239,7 @@ class excelSheet():
 					worksheet.write(self.typeC + rowS, refInfo['type'][refListIndex],  unlocked)
 					####
 					worksheet.write(self.deviceC + rowS, None,  unlocked)
-					worksheet.write(self.streDeviceC + rowS, None,  unlocked) ## format?
+					worksheet.write(self.streDeviceC + rowS, None,  centerBlankF) ## format?
 					if (self.withFocus):
 						worksheet.write(self.focusHC + rowS, None,  unlocked) ## format?
 						worksheet.data_validation(self.focusHC + rowS, {'validate': 'integer', 'criteria': 'between','minimum': -20,'maximum': 20, 'error_title': 'Warning', 'error_message': 'Value not in the range of -20 and 20!', 'error_type': 'stop'})
@@ -337,21 +339,21 @@ class excelSheet():
 			worksheet.write(self.hiddenIfFocusHeightCell, 1,  existingWhiteBlockedF)
 		else:
 			worksheet.write(self.hiddenIfFocusHeightCell, 0,  existingWhiteBlockedF)
+		worksheet.write(self.hiddenIfFirstTimeOpenCell, 1, existingWhiteBlockedF)
+		### import VBA
+		workbook.add_vba_project('vbaProject.bin')
+		workbook.set_vba_name("ThisWorkbook")
+		worksheet.set_vba_name("Sheet1")
+		### add VBA buttons
+		worksheet.insert_button(self.vbaButtonC + str(lastRefRow - 1), {'macro': 'appendARow',
+		                               								 	'caption': 'Append',
+		                               								 	'width': 128,
+		                              								 	'height': 40})
 
-		# ### import VBA
-		# workbook.add_vba_project('vbaProject.bin')
-		# workbook.set_vba_name("ThisWorkbook")
-		# worksheet.set_vba_name("Sheet1")
-		# ### add VBA buttons
-		# worksheet.insert_button(self.vbaButtonC + str(lastRefRow - 1), {'macro': 'appendARow',
-		#                                								 	'caption': 'Append',
-		#                                								 	'width': 128,
-		#                               								 	'height': 40})
-
-		# worksheet.insert_button(self.vbaButtonC + str(int(fstAppendRow)+1), {'macro': 'undoRow',
-		                               								 		#  'caption': 'UnAppend',
-		                               								 		#  'width': 128,
-		                              								 		 # 'height': 40})
+		worksheet.insert_button(self.vbaButtonC + str(int(fstAppendRow)+1), {'macro': 'undoRow',
+		                               								 		 'caption': 'UnAppend',
+		                               								 		 'width': 128,
+		                              								 		 'height': 40})
 		### merger two cells beteen the two buttons
 		worksheet.merge_range(self.vbaButtonC + str(lastRefRow + 1) + ':' +  chr(ord(self.vbaButtonC)+1) + str(lastRefRow + 1), None)
 
