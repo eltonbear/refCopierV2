@@ -190,9 +190,9 @@ class excelSheet():
 				worksheet.data_validation(self.realRefC + pseudoRefRowS, {'validate': 'custom', 'value': pseudoRefFormula, 'error_title': 'Warning', 'error_message': 'Reference does not exist or Duplicates!', 'error_type': 'stop'})
 				pseudoRefRowS = str(int(pseudoRefRowS) + 1)
 		### Type drop down list
-		typeList = ['Default','NEWBENCH', 'AVX_S', 'AVX_D', 'PRSID_S', 'PRSID_D', 'TECDIA_S', 'TECDIA_D', 'PKGFLOOR', 'IC_S', 'IC_D', 'SIGE', 'RESIST_S', 'RESIST_D', 'TF_S', 'TF_D', 'COIN_S', 'COIN_D']
+		typeList = ['CAP_D', 'CAP_S', 'COIN_D', 'COIN_S', 'CURTWRIG', 'DCFEEDTC', 'Default', 'IC_D', 'IC_S', 'ORION', 'PKGFLOOR', 'RESIST_D', 'RESIST_S', 'TF_D', 'TF_S']
 		### Device drop down lsist
-		# deviceList = ['CAP', 'TF', 'IC', 'DCFEED']
+		deviceList = ['CAP', 'TF', 'IC', 'DCFEED']
 		refGapSet = set(refGap)
 		refNumber = 1	
 		refListIndex = 0
@@ -231,6 +231,8 @@ class excelSheet():
 					worksheet.data_validation(self.copyC + rowS, {'validate': 'custom', 'value': countFormula, 'error_title': 'Warning', 'error_message': 'Reference number does not exist or Duplicates!', 'error_type': 'stop'}) 
 					### Data validation for types
 					worksheet.data_validation(self.typeC + rowS, {'validate': 'list', 'source': typeList, 'error_title': 'Warning', 'error_message': 'Type does not exist in the library!', 'error_type': 'warning'}) 
+					### Data validation for devices
+					worksheet.data_validation(self.deviceC + rowS, {'validate': 'list', 'source': deviceList, 'error_title': 'Warning', 'error_message': 'Device does not exist in the library!', 'error_type': 'warning'}) 
 				else:  ### existing ref row
 					worksheet.write(self.statusC + rowS, self.eTag, existingWhiteBlockedF)
 					worksheet.write(self.refC + rowS, refNumber, centerF)
@@ -248,8 +250,10 @@ class excelSheet():
 					### data validation for dep
 					listF = 'COUNTIF($' + self.hiddenRefC + '$1' + ':$' + self.hiddenRefC + '$' + lastHiddenRefRow + ',' + self.depC + rowS + ')=1'
 					worksheet.data_validation(self.depC + rowS, {'validate': 'custom', 'value': listF, 'error_title': 'Warning', 'error_message': 'Reference does not exist!', 'error_type': 'stop'})
-					# Data validation for types
+					### Data validation for types
 					worksheet.data_validation(self.typeC + rowS, {'validate': 'list', 'source': typeList, 'error_title': 'Warning', 'error_message': 'Type does not exist in the library!', 'error_type': 'warning'}) 
+					### Data validation for devices
+					worksheet.data_validation(self.deviceC + rowS, {'validate': 'list', 'source': deviceList, 'error_title': 'Warning', 'error_message': 'Device does not exist in the library!', 'error_type': 'warning'}) 
 					### formulas for Wire new D Count cell
 					wireRefSCount = len(wireSDInfo[str(refNumber)]['s'])
 					wireRefDCount = len(wireSDInfo[str(refNumber)]['d'])
@@ -312,8 +316,10 @@ class excelSheet():
 				f2 = 'COUNTIF($' + self.hiddenRefC + '$1' + ':$' + self.hiddenRefC + '$' + lastHiddenRefRow + ',' + self.copyC + rowS + ')=1'
 				countFormula = '=AND(' + f1 + ', ' + f2 + ')'
 				worksheet.data_validation(self.copyC + rowS, {'validate': 'custom', 'value': countFormula, 'error_title': 'Warning', 'error_message': 'Reference number does not exist or Duplicates!', 'error_type': 'stop'})
-				# Data validation for types
+				### Data validation for types
 				worksheet.data_validation(self.typeC + rowS, {'validate': 'list', 'source': typeList, 'error_title': 'Warning', 'error_message': 'Type does not exist in the library!', 'error_type': 'warning'}) 	
+				### Data validation for devices
+				worksheet.data_validation(self.deviceC + rowS, {'validate': 'list', 'source': deviceList, 'error_title': 'Warning', 'error_message': 'Device does not exist in the library!', 'error_type': 'warning'}) 
 				if (self.withFocus):
 					worksheet.data_validation(self.focusHC + rowS, {'validate': 'integer', 'criteria': 'between','minimum': -20,'maximum': 20, 'error_title': 'Warning', 'error_message': 'Value not in the range of -20 and 20!', 'error_type': 'stop'})
 			refNumber = refNumber + 1
