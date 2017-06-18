@@ -87,7 +87,7 @@ class excelSheet():
 
 		### get folder name and xml file name without extension/ name xlsm file path
 		xmlFolderPath, xmlFileName = splitFileFolderAndName(xmlFilePath)
-		xlsxFileName = xmlFileName + '_instruction.xlsx'
+		xlsxFileName = xmlFileName + '_instruction.xlsm'
 		xlsxFilePath = xmlFolderPath + '/' + xlsxFileName
 		### creat workbook and worksheet
 		workbook = xlsxwriter.Workbook(xlsxFilePath)
@@ -109,7 +109,7 @@ class excelSheet():
 		missingWireCountHiddenF = workbook.add_format({'valign': 'vcenter', 'align': 'center', 'bg_color': '#FFC7CE', 'hidden': 1,'border': 1, 'border_color': '#b2b2b2'})
 		existingWhiteBlockedF = workbook.add_format({'font_color': 'white', 'locked': 1, 'hidden': 1})
 		appendTagAndRefF = workbook.add_format({'valign': 'vcenter', 'align': 'center', 'font_color': 'white', 'bg_color': '#92cddc', 'locked': 1, 'border': 1, 'border_color': '#b2b2b2'})
-		appendUnblockedF =  workbook.add_format({'valign': 'vcenter', 'align': 'center', 'bg_color': '#92cddc', 'locked': 0,'border': 1, 'border_color': '#b2b2b2'})
+		appendUnblockedF = workbook.add_format({'valign': 'vcenter', 'align': 'center', 'bg_color': '#92cddc', 'locked': 0,'border': 1, 'border_color': '#b2b2b2'})
 		appendBlockedF = workbook.add_format({'valign': 'vcenter', 'align': 'center', 'bg_color': '#92cddc', 'locked': 1, 'hidden': 1, 'border': 1, 'border_color': '#b2b2b2'})
 		appendHiddenZeroBlockedF = workbook.add_format({'bg_color': '#92cddc', 'font_color': '#92cddc', 'locked': 1, 'hidden': 1, 'border': 1, 'border_color': '#b2b2b2'})
 		pseudoRefLetterF = workbook.add_format({'valign': 'vcenter', 'align': 'center', 'bg_color': '#c6efce', 'font_color': '#006100'})
@@ -207,7 +207,7 @@ class excelSheet():
 					worksheet.write(self.typeC + rowS, None,  missingUnblockedF)
 					####
 					worksheet.write(self.deviceC + rowS, None,  missingUnblockedF)
-					worksheet.write(self.streDeviceC + rowS, None,  missingDepBlockedBlankF) ### format?
+					worksheet.write(self.streDeviceC + rowS, 0,  missingDepBlockedBlankF) ### format?
 					if (self.withFocus):
 						worksheet.write(self.focusHC + rowS, None,  missingUnblockedF)
 						worksheet.data_validation(self.focusHC + rowS, {'validate': 'integer', 'criteria': 'between','minimum': -20,'maximum': 20, 'error_title': 'Warning', 'error_message': 'Value not in the range of -20 and 20!', 'error_type': 'stop'})
@@ -241,7 +241,7 @@ class excelSheet():
 					worksheet.write(self.typeC + rowS, refInfo['type'][refListIndex],  unlocked)
 					####
 					worksheet.write(self.deviceC + rowS, None,  unlocked)
-					worksheet.write(self.streDeviceC + rowS, None,  centerBlankF) ## format?
+					worksheet.write(self.streDeviceC + rowS, 0,  centerBlankF) ## format?
 					if (self.withFocus):
 						worksheet.write(self.focusHC + rowS, None,  unlocked) ## format?
 						worksheet.data_validation(self.focusHC + rowS, {'validate': 'integer', 'criteria': 'between','minimum': -20,'maximum': 20, 'error_title': 'Warning', 'error_message': 'Value not in the range of -20 and 20!', 'error_type': 'stop'})
@@ -289,7 +289,7 @@ class excelSheet():
 					worksheet.write(self.typeC + rowS, None,  appendUnblockedF)
 					####
 					worksheet.write(self.deviceC + rowS, None,  appendUnblockedF)
-					worksheet.write(self.streDeviceC + rowS, None,  appendUnblockedF) ## format?
+					worksheet.write(self.streDeviceC + rowS, 0,  appendHiddenZeroBlockedF) ## format?
 					if (self.withFocus):
 						worksheet.write(self.focusHC + rowS, None,  appendUnblockedF)
 					####
@@ -346,22 +346,22 @@ class excelSheet():
 		else:
 			worksheet.write(self.hiddenIfFocusHeightCell, 0,  existingWhiteBlockedF)
 		worksheet.write(self.hiddenIfFirstTimeOpenCell, 1, existingWhiteBlockedF)
-		# ### import VBA
-		# workbook.add_vba_project('vbaProject.bin')
-		# workbook.set_vba_name("ThisWorkbook")
-		# worksheet.set_vba_name("Sheet1")
-		# ### add VBA buttons
-		# worksheet.insert_button(self.vbaButtonC + str(lastRefRow - 1), {'macro': 'appendARow',
-		#                                								 	'caption': 'Append',
-		#                                								 	'width': 128,
-		#                               								 	'height': 40})
+		### import VBA
+		workbook.add_vba_project('vbaProject.bin')
+		workbook.set_vba_name("ThisWorkbook")
+		worksheet.set_vba_name("Sheet1")
+		### add VBA buttons
+		worksheet.insert_button(self.vbaButtonC + str(lastRefRow - 1), {'macro': 'appendARow',
+		                               								 	'caption': 'Append',
+		                               								 	'width': 128,
+		                              								 	'height': 40})
 
-		# worksheet.insert_button(self.vbaButtonC + str(int(fstAppendRow)+1), {'macro': 'undoRow',
-		#                                								 		 'caption': 'UnAppend',
-		#                                								 		 'width': 128,
-		#                               								 		 'height': 40})
-		# ### merger two cells beteen the two buttons
-		# worksheet.merge_range(self.vbaButtonC + str(lastRefRow + 1) + ':' +  chr(ord(self.vbaButtonC)+1) + str(lastRefRow + 1), None)
+		worksheet.insert_button(self.vbaButtonC + str(int(fstAppendRow)+1), {'macro': 'undoRow',
+		                               								 		 'caption': 'UnAppend',
+		                               								 		 'width': 128,
+		                              								 		 'height': 40})
+		### merger two cells beteen the two buttons
+		worksheet.merge_range(self.vbaButtonC + str(lastRefRow + 1) + ':' +  chr(ord(self.vbaButtonC)+1) + str(lastRefRow + 1), None)
 
 		### add comment
 		copyTitleComment = 'Input a name of any existing refernces from the XML file (number only).\nAll gaps need to be filled out'
