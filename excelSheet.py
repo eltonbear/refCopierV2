@@ -125,7 +125,7 @@ class excelSheet():
 		worksheet.set_column(self.refC + ':' + self.refC, 20)
 		worksheet.set_column(self.typeC + ':' + self.typeC, 14)
 		worksheet.set_column(self.deviceC + ':' + self.deviceC, 10)
-		worksheet.set_column(self.streDeviceC + ':' + self.streDeviceC, 14)
+		worksheet.set_column(self.streDeviceC + ':' + self.streDeviceC, 12)
 		if (self.withFocus):
 			worksheet.set_column(self.focusHC + ':' + self.focusHC, 12)
 		worksheet.set_column(self.depC + ':' + self.depC, 17)
