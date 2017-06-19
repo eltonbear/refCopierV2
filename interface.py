@@ -168,6 +168,7 @@ class browse(Frame):
 		self.filePath = ""			# Final file path
 		self.filePathEntry = None	# File path in browse entry
 		self.isXmlNotXlsx = isXML 	# bool (if it's to browse XML files)
+		self.withFocus = IntVar()	# IntVar for focus height 
 		# Create GUI
 		self.initGUI()
 
@@ -194,6 +195,9 @@ class browse(Frame):
 		if self.isXmlNotXlsx:
 			browseText = "Browse xml"
 			width = 11
+			# Add checkbox for focus height
+			checkbox = Checkbutton(self, text = "Focus Height", variable = self.withFocus, onvalue = 1, offvalue = 0, height=1, width =12)
+			checkbox.pack(side = LEFT, padx=4, pady=2)
 		else:
 			browseText = "Browse xlsx or xlsm"
 			width = 17
@@ -260,7 +264,7 @@ class browse(Frame):
 			# If file is a XML
 			if self.isXmlNotXlsx:
 				# Read xml and create an Excel sheet
-				result = readXMLAndStartSheet(self.filePath)
+				result = readXMLAndStartSheet(self.filePath, self.withFocus.get())
 			else:
 				# Read an Excel sheet and create a new XML file
 				result = readSheetAndModifyXML(self.filePath)
@@ -308,13 +312,15 @@ class browse(Frame):
 
 		messagebox.showinfo("Warning", message, parent = self.parent)
 
-def readXMLAndStartSheet(filePath):
+def readXMLAndStartSheet(filePath, withFocus):
 	"""Get data from XML and present them in a Excel spreadsheet.
 
 		Parameters
 		----------
 		filePath: string
 			A xml file path.
+		withFocus: int
+			1: with focus. 0: without focus
 
 		Returns
 		-------
@@ -349,7 +355,10 @@ def readXMLAndStartSheet(filePath):
 		return (errorFilePath, info)
 	else:  
 		# Create an excelSheet object
-		excelWrite = excelSheet(True)
+		if withFocus:
+			excelWrite = excelSheet(True)
+		else:
+			excelWrite = excelSheet(False)
 		# Write data into an Excel spreadsheet
 		error = excelWrite.startNewExcelSheet(filePath, refInfo, wireInfo)
 		return ("", error)
