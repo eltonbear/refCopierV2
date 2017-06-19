@@ -114,8 +114,8 @@ class excelSheet():
 		appendHiddenZeroBlockedF = workbook.add_format({'bg_color': '#92cddc', 'font_color': '#92cddc', 'locked': 1, 'hidden': 1, 'border': 1, 'border_color': '#b2b2b2'})
 		pseudoRefLetterF = workbook.add_format({'valign': 'vcenter', 'align': 'center', 'bg_color': '#c6efce', 'font_color': '#006100'})
 		pseudoCountsF = workbook.add_format({'valign': 'vcenter', 'align': 'center', 'bg_color': '#c6efce'})
-		warningGoodF = workbook.add_format({'valign': 'vcenter', 'align': 'center', 'bg_color': '#c6efce', 'font_color': '#006100'})
-		warningCheckF = workbook.add_format({'valign': 'vcenter', 'align': 'center', 'bg_color': '#FFEB9C', 'font_color': '#9c5700'})
+		warningGoodF = workbook.add_format({'valign': 'vcenter', 'align': 'center', 'bg_color': '#c6efce', 'font_color': '#006100', 'hidden': 1, 'right': 0, 'top': 0})
+		warningCheckF = workbook.add_format({'valign': 'vcenter', 'align': 'center', 'bg_color': '#FFEB9C', 'font_color': '#9c5700', 'hidden': 1, 'right': 0, 'top': 0})
 		### activate protection with password "elton"
 		worksheet.protect('elton')
 
@@ -299,8 +299,8 @@ class excelSheet():
 					worksheet.write_formula(self.depC + rowS, '=' + self.copyC + rowS, appendBlockedF)
 					wireNewDFormula = '=IF(ISBLANK(' + self.copyC + rowS + '), 0, INDIRECT("' + self.wireDCountC + '"& ' + self.copyC + rowS + '+1))'
 					worksheet.write_formula(self.wireNewDcountC + rowS, wireNewDFormula, appendBlockedF)
-					warningFormula = 'IF(OR('+ self.wireSCountC + rowS + '=0,'+ self.wireNewDcountC + rowS + '=0), "good","check")'
-					worksheet.write_formula(self.warningC + rowS, warningFormula, warningCheckF)
+					warningFormula = 'IF(ISBLANK(' + self.copyC + rowS + '), "", IF(OR('+ self.wireSCountC + rowS + '=0,'+ self.wireNewDcountC + rowS + '=0), "good","check"))'
+					worksheet.write_formula(self.warningC + rowS, warningFormula, centerHiddenF)
 									
 				### conditional formats for wire counts --> dont show values if there is no input in copy column
 				wireConditionalFormula = '=AND(ISBLANK(' + self.copyC + rowS + '), NOT(ISBLANK(' + self.statusC + rowS + ')))'
@@ -309,6 +309,7 @@ class excelSheet():
 				worksheet.conditional_format(self.wireDCountC + rowS, {'type': 'formula', 'criteria': wireConditionalFormula, 'format': appendHiddenZeroBlockedF})
 				worksheet.conditional_format(self.wireNewDcountC + rowS, {'type': 'formula', 'criteria': wireConditionalFormula, 'format': appendHiddenZeroBlockedF})
 				### conditional formats for warning
+				worksheet.conditional_format(self.warningC + rowS, {'type': 'text', 'criteria': 'containing', 'value': 'check', 'format': warningCheckF}) ## format?
 				worksheet.conditional_format(self.warningC + rowS, {'type': 'text', 'criteria': 'containing', 'value': 'good', 'format': warningGoodF}) ##########???
 
 				### wire formula for datavalidation. it prevents duplicates and anything outside the list(it writes every row til the last appendable row becuase i dont want to do data validation in VBA)
