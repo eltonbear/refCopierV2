@@ -9,14 +9,31 @@ class excelSheet():
 	def __init__(self, withFocus):
 		### Device
 		self.withFocus = withFocus
-		### Set columns
+		### Set tag names
+		self.mTag = 'missing'
+		self.eTag = 'existing'
+		self.aTag = 'appending'
+		self.workSheetName = 'Reference_copying'
+		self.copyBlockedText = 'BLOCKED'
+		### Set column
+		self.hiddenRefC='U'
+		### Set rows
+		self.titleRow = '1'
+		self.firstInputRow = str(int(self.titleRow) + 1)
+		self.pseudoTitleRow = '6'
+		### Set cell address
+		self.hiddenIfFocusHeightCell = 'V1'
+		self.hiddenIfFirstTimeOpenCell = 'W1'
+
+	def valueInitialization(self, ifWithFocus):
+		 ### Set columns
 		self.statusC = 'A'
 		self.refC = 'B'
 		self.copyC = 'C'
 		self.typeC = 'D'
 		self.deviceC = 'E'
 		self.streDeviceC = 'F'
-		if(withFocus):
+		if(ifWithFocus):
 			self.focusHC = 'G'
 			self.depC = 'H'
 			self.wireSCountC = 'I'
@@ -47,14 +64,8 @@ class excelSheet():
 			self.pseudoCountC = 'Q'
 			self.wirePseudoCountSC = 'R'
 			self.wirePseudoCountDC = 'S'
-		self.hiddenRefC='U'
-		### Set rows
-		self.titleRow = '1'
-		self.firstInputRow = str(int(self.titleRow) + 1)
-		self.pseudoTitleRow = '6'
+
 		### Set cell address
-		self.hiddenIfFocusHeightCell = 'V1'
-		self.hiddenIfFirstTimeOpenCell = 'W1'
 		self.xmlFilePathCell = self.realRefC + '1'
 		self.wireTagCell = self.realRefC + '3'
 		self.wireCountCell = self.realRefC + '4'		
@@ -62,12 +73,6 @@ class excelSheet():
 		self.appendRowCountCell = self.hiddenRowsC + '3' 
 		self.lastRefRowBeforeMacroCell = self.hiddenRowsC + '2'
 		self.hiddenLastExistingRefRowCell = self.hiddenRowsC + '1'
-		### Set tag names
-		self.mTag = 'missing'
-		self.eTag = 'existing'
-		self.aTag = 'appending'
-		self.workSheetName = 'Reference_copying'
-		self.copyBlockedText = 'BLOCKED'
 
 	def startNewExcelSheet(self, xmlFilePath, refInfo, wireSDInfo):
 		"""
@@ -77,7 +82,9 @@ class excelSheet():
 			refGap: list
 			
 		"""
-		
+		### Set up column and cell addres 
+		self.valueInitialization(self.withFocus)
+		### Initialize data structures
 		refNumList = refInfo['name']
 		refGap = refInfo['gap']
 		numOfGap = len(refGap)
@@ -394,7 +401,10 @@ class excelSheet():
 		except KeyError:
 			message = "Cannot find excel sheet - " + self.workSheetName + "!"
 			return None, None, message
-			
+		### Setup column and cell addresses 
+		self.withFocus = worksheet[self.hiddenIfFocusHeightCell].value
+		self.valueInitialization(self.withFocus)
+
 		xmlFilePath = worksheet[self.xmlFilePathCell].value[5:]
 		lastRow = worksheet[self.appendRowCountCell].value # int 
 		### excelReference data structure --> {'og': {'refNum':[type, dependon]}, 'add': {'refNum': [copyNum, type]}, 'newRefName': [str(refNum)]}
@@ -402,6 +412,11 @@ class excelSheet():
 		missingRef = []
 		missingCopy = []
 		missingType = []
+		###
+		missingDevice = []
+		if self.withFocus:
+			missingFocus = []
+		###
 		missingDep = []
 		wrongSeqRow = []
 		newRefName = []
@@ -411,6 +426,7 @@ class excelSheet():
 		row  = self.firstInputRow
 		prevAllExist = True
 		error = False
+		
 		while int(row) <= lastRow:
 			status = worksheet[self.statusC + row].value
 			ref = str(worksheet[self.refC + row].value)
