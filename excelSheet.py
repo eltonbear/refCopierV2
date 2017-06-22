@@ -426,19 +426,31 @@ class excelSheet():
 		row  = self.firstInputRow
 		prevAllExist = True
 		error = False
-		
+
 		while int(row) <= lastRow:
 			status = worksheet[self.statusC + row].value
 			ref = str(worksheet[self.refC + row].value)
 			copy = str(worksheet[self.copyC + row].value)
 			typ = str(worksheet[self.typeC + row].value)
 			dep = str(worksheet[self.depC + row].value)
+			###
+			device = str(worksheet[self.deviceC + row].value)
+			streDevice = str(worksheet[self.streDeviceC + row].value)
+			###
 
 			refExists = ref and ref != 'None'
-			copyExists = copy and copy !='None'
-			typeExists = typ and typ !='None'
+			copyExists = copy and copy != 'None'
+			typeExists = typ and typ != 'None'
 			depExists = dep and dep != 'None' and dep != '0' ### with formula 
 			depCellEmpty = dep == None or dep == 'None'      ### if gets modified by users and left empty
+			###
+			deviceExists = device and device != 'None'
+
+			if self.withFocus:
+				focus = str(worksheet[self.focusHC + row].value)
+				focusExists = focus and focus != 'None'
+			###
+			
 			if dep == 'None':
 				dep = None
 			if status == self.eTag: 
