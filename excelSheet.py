@@ -407,15 +407,14 @@ class excelSheet():
 
 		xmlFilePath = worksheet[self.xmlFilePathCell].value[5:]
 		lastRow = worksheet[self.appendRowCountCell].value # int 
-		### excelReference data structure --> {'og': {'refNum':[type, dependon]}, 'add': {'refNum': [copyNum, type]}, 'newRefName': [str(refNum)]}
+		### excelReference data structure --> {'og': {'refNum':[type, device, stretch, focus, dependon]}, 'add': {'refNum': [copyNum, type, device, stretch, focus]}, 'newRefName': [str(refNum)]}
 		excelReference = {'og': {}, 'add': {}, 'newRefName': []}
 		missingRef = []
 		missingCopy = []
 		missingType = []
 		###
 		missingDevice = []
-		if self.withFocus:
-			missingFocus = []
+		missingFocus = []
 		###
 		missingDep = []
 		wrongSeqRow = []
@@ -445,26 +444,32 @@ class excelSheet():
 			depCellEmpty = dep == None or dep == 'None'      ### if gets modified by users and left empty
 			###
 			deviceExists = device and device != 'None'
-
 			if self.withFocus:
 				focus = str(worksheet[self.focusHC + row].value)
 				focusExists = focus and focus != 'None'
+			else:
+				focus = None
+				focusExists = True
 			###
 			
 			if dep == 'None':
 				dep = None
 			if status == self.eTag: 
-				if refExists and copyExists and typeExists and not error:
-					excelReference['og'][ref] = [typ, dep]
+				if refExists and copyExists and typeExists and deviceExists and focusExists and not error:
+					excelReference['og'][ref] = [typ, device, streDevice, focus, dep]
 				else:
 					if not refExists:
 						missingRef.append(row)
 					if not typeExists:
 						missingType.append(row)
+					if not deviceExists:
+						missingDevice.append(row)
+					if not focusExists:
+						missingFocus.append(row)
 					error = True
 			elif status == self.mTag:
-				if refExists and copyExists and typeExists and depExists and not error:
-					excelReference['add'][ref] = [copy, typ]
+				if refExists and copyExists and typeExists and deviceExists and focusExists and depExists and not error:
+					excelReference['add'][ref] = [copy, typ, device, streDevice, focus]
 					excelReference['newRefName'].append(ref)
 				else:
 					if not refExists:
@@ -473,15 +478,19 @@ class excelSheet():
 						missingCopy.append(row)
 					if not typeExists:
 						missingType.append(row)
+					if not deviceExists:
+						missingDevice.append(row)
+					if not focusExists:
+						missingFocus.append(row)
 					if depCellEmpty:
 						missingDep.append(row)
 					error = True
 			else: ### append
 				if prevAllExist:					
-					if refExists and copyExists and typeExists and depExists and not error:
-						excelReference['add'][ref] = [copy, typ]
+					if refExists and copyExists and typeExists and deviceExists and focusExists and depExists and not error:
+						excelReference['add'][ref] = [copy, typ, device, streDevice, focus]
 						excelReference['newRefName'].append(ref)
-					elif refExists and not copyExists and not typeExists and not depExists:
+					elif refExists and not copyExists and not typeExists and not deviceExists and streDevice == '0' and not (focusExists and self.withFocus) and not depExists:
 						prevAllExist = False
 					else:
 						if not refExists:
@@ -490,10 +499,14 @@ class excelSheet():
 							missingCopy.append(row)
 						if not typeExists:
 							missingType.append(row)
+						if not deviceExists:
+							missingDevice.append(row)
+						if not focusExists:
+							missingFocus.append(row)						
 						if depCellEmpty:
 							missingDep.append(row)
 						error = True
-				elif copyExists or typeExists or depExists:
+				elif copyExists or typeExists or deviceExists or streDevice == '1' or (self.withFocus and focusExists) or depExists:
 					wrongSeqRow.append(row)
 					if not refExists:
 						missingRef.append(row)
@@ -501,11 +514,15 @@ class excelSheet():
 						missingCopy.append(row)
 					if not typeExists:
 						missingType.append(row)
+					if not deviceExists:
+							missingDevice.append(row)
+					if not focusExists:
+						missingFocus.append(row)
 					if depCellEmpty:
 						missingDep.append(row) 
 					prevAllExist = True
 					error = True
-			### chcek repeats
+			### check repeats
 			if copy == self.copyBlockedText:
 				copy = None
 			if copy != 'None' and copy:
@@ -545,12 +562,12 @@ class excelSheet():
 			excelReference['pseudo2Real'] = pseudo2Real
 
 		errorText = ""
-		if missingRef or missingCopy or missingType or missingDep or repeat or wrongSeqRow or missingRealRefNum:
-			errorText = writeErrorMessage(missingRef, missingCopy, missingType, missingDep, repeat, wrongSeqRow, missingRealRefNum)
+		if missingRef or missingCopy or missingType or missingDevice or missingFocus or missingDep or repeat or wrongSeqRow or missingRealRefNum:
+			errorText = writeErrorMessage(missingRef, missingCopy, missingType, missingDevice, missingFocus, missingDep, repeat, wrongSeqRow, missingRealRefNum)
 			
 		return xmlFilePath, excelReference, errorText
 
-def writeErrorMessage(missingRefRow, missingCopyRow, missingTypeRow, missingDepRow, repeatRefRow, wrongSequenceRow, missingRealRef):
+def writeErrorMessage(missingRefRow, missingCopyRow, missingTypeRow, missingDeviceRow, missingFocusRow, missingDepRow, repeatRefRow, wrongSequenceRow, missingRealRef):
 	message = ""
 	if missingRefRow:
 		message = message + "\nMissing Reference Number at Row: "
@@ -570,6 +587,18 @@ def writeErrorMessage(missingRefRow, missingCopyRow, missingTypeRow, missingDepR
 			message = message + missingTypeRow[i] + ", "
 		message = message + missingTypeRow[-1] + "\n"
 
+	if missingDeviceRow:
+		message = message + "\nMissing Device at Row: "
+		for i in range(0, len(missingDeviceRow) - 1):
+			message = message + missingDeviceRow[i] + ", "
+		message = message + missingDeviceRow[-1] + "\n"
+
+	if missingFocusRow:
+		message = message + "\nMissing Focus Height at Row: "
+		for i in range(0, len(missingFocusRow) - 1):
+			message = message + missingFocusRow[i] + ", "
+		message = message + missingFocusRow[-1] + "\n"
+
 	if missingDepRow:
 		message = message + "\nMissing Dependent Number at Row: "
 		for i in range(0, len(missingDepRow) - 1):
@@ -585,7 +614,7 @@ def writeErrorMessage(missingRefRow, missingCopyRow, missingTypeRow, missingDepR
 		message = message + "\n"
 
 	if wrongSequenceRow:
-		message = message + "\nSequence Incorrect at Row: "
+		message = message + "\nIncorrect Sequence at Row: "
 		for i in range(0, len(wrongSequenceRow) - 1):
 			message = message + wrongSequenceRow[i] + ", "
 		message = message + wrongSequenceRow[-1] + "\n"
