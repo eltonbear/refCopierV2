@@ -1,6 +1,5 @@
 import xml.etree.ElementTree as ET
 from xml.etree.ElementTree import ElementTree, Element, SubElement
-# import re
 from os.path import exists
 from util import splitFileFolderAndName
 
@@ -234,7 +233,7 @@ class xmlTool():
 				XML file path.
 			referenceDictDFromExc: dictionary
 				A collection of data from an Excel spreadsheet.
-				referenceDictDFromExc data structure --> {'og': {'refNum':[type, dependon]}, 'add': {'refNum': [copyNum, type]}, 'newRefName': ['refNum'], 'pseudo2Real': {'A': '1', 'B': '2'}}
+				referenceDictDFromExc data structure --> {'og': {'refNum':[type, device, stretch, focus, dependon]}, 'add': {'refNum': [copyNum, type, device, stretch, focus]}, 'newRefName': ['refNum'], 'pseudo2Real': {'A': '1', 'B': '2'}}
 
 
 			Returns
@@ -279,7 +278,7 @@ class xmlTool():
 				# Get number in string from name
 				refNumber = ref[cls.prefixLen:]
 				# Get type and dependency from Excel inputs
-				typ, dep = referenceDictDFromExc['og'][refNumber]
+				typ, device, stretch, focus, dep = referenceDictDFromExc['og'][refNumber]
 				# If types dont match, modify type
 				if r.find('Type').text != typ:
 					r.find('Type').text = typ
@@ -297,6 +296,20 @@ class xmlTool():
 					# If there is depenon originally, but not in Excel sheet, remove dependon element in XML
 					if r.find('Dependon') != None:
 						r.remove(r.find('Dependon'))
+				# Create focus height element if needed
+				if focus:
+					newFocusEle = Element('Focus')
+					newFocusEle.text = focus
+					r.insert(5, newFocusEle)
+					indent(newFocusEle, 2)
+				# Create device element
+				newDeviceEle = Element('Device')
+				newDeviceEle.text = device
+				# if stretch == '1':
+				# 	newDeviceEle.set('Device Stretch', 'True')
+				r.insert(6, newDeviceEle)
+				indent(newDeviceEle, 2)
+
 				referenceEDict[refNumber] = r
 
 		# Read wire source and destination information, see function readWieSDInfo
@@ -325,35 +338,35 @@ class xmlTool():
 					else:
 						wireSDInfo[translation] = {'s': wirePseudoSrcIndex, 'd': wirePseudoDesIndex}
 
-		# Get a dictionary references to add, addRefDict --> {'refNum': ['copyNum', type]}
+		# Get a dictionary references to add, addRefDict --> {'refNum': [copyNum, type, device, stretch, focus]}
 		addRefDict = referenceDictDFromExc['add']
-		# referenceDictDFromExc['newRefName'] --> ['ref num in str']
-		for nName in referenceDictDFromExc['newRefName']:
+		# referenceDictDFromExc['newRefName'] --> ['new ref number in str']
+		for newRefName in referenceDictDFromExc['newRefName']:
 			# Get reference name to be copied
-			refNameToCopy = addRefDict[nName][0]
+			refNameToCopy = addRefDict[newRefName][0]
 			# Get a new reference element 
-			copy = writeARefCopy(referenceEDict[refNameToCopy], refNameToCopy, nName, addRefDict[nName][1], cls.prefix)
+			copy = writeARefCopy(referenceEDict[refNameToCopy], newRefName, addRefDict[newRefName], cls.prefix)
 			# Insert into reference tree
-			root.insert(int(nName)-1, copy)
+			root.insert(int(newRefName)-1, copy)
 			# Change wire destination
 			if refNameToCopy in wireSDInfo:
-				modifyWireRef(refNameToCopy, nName, wireE, wireSDInfo[refNameToCopy]['d'], cls.prefix, 1)
+				modifyWireRef(refNameToCopy, newRefName, wireE, wireSDInfo[refNameToCopy]['d'], cls.prefix, 1)
 		# Create new XML file path and write data into it
 		newXmlFilePath = xmlFolderPath + "/" + xmlFileName + "_new.xml"
 		tree.write(newXmlFilePath)
 		return newXmlFilePath
 
-def writeARefCopy(refEToCopy, oldName, newName, typ, prefix): 
-	"""Create a referece element (no points).
+def writeARefCopy(refEToCopy, newName, newRefInfo, prefix): 
+	"""Create a referece element (with the first pair of points).
 
 		Parameters
 		----------
-		oldName: string
-			The reference name to copy
+		refEToCopy: an XML element
+			Existing reference element with all its sub-elements
 		newNmea: string
 			Name of the new reference.
-		typ: string
-			Type of new reference.
+		newRefInfo: list
+			Information of a new reference --> [copyNum, type, device, stretch, focus]
 		prefix: string
 			String before number in reference name.
 
@@ -362,19 +375,30 @@ def writeARefCopy(refEToCopy, oldName, newName, typ, prefix):
 		newRefEle: Element
 			New reference element.
 	"""
-	# Creat a new referenceSystem node
+	# Unpack
+	oldName, typ, device, stretch, focus = newRefInfo
+	# Create a new referenceSystem node
 	newRefEle = Element('ReferenceSystem')
-	# Creat a sub-element for name in reference
+	# Create a sub-element for name in reference
 	newNameEle = SubElement(newRefEle, 'Name')
 	newNameEle.text = prefix + newName
-	# Creat a sub-element for type in reference
+	# Create a sub-element for type in reference
 	newTypeEle = SubElement(newRefEle, 'Type')
 	newTypeEle.text = typ
-	# Creat a sub-element for dependon in reference
+	# Create a sub-element for dependon in reference
 	newDepEle = SubElement(newRefEle, 'Dependon')
 	newDepEle.text = prefix + oldName
 	# Copy over the first point
 	newRefEle.append(refEToCopy.findall('Point')[0])
+	# Create a sub-element for focus in reference if needed
+	if focus:
+		newFocusEle = SubElement(newRefEle, 'Focus')
+		newFocusEle.text = focus
+	# Created a sub-element for device in reference
+	newDeviceEle = SubElement(newRefEle, 'Device')
+	newDeviceEle.text = device
+	# if stretch == '1':
+	# 	newDeviceEle.set('Device Stretch', 'True')
 	# Formatting xml text so it prints nicly 
 	indent(newRefEle, 1)
 	# Return the reference(address) of the new reference element
