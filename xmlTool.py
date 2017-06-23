@@ -305,8 +305,8 @@ class xmlTool():
 				# Create device element
 				newDeviceEle = Element('Device')
 				newDeviceEle.text = device
-				# if stretch == '1':
-				# 	newDeviceEle.set('Device Stretch', 'True')
+				if stretch == '1':
+					newDeviceEle.set('Stretch', 'True')
 				r.insert(6, newDeviceEle)
 				indent(newDeviceEle, 2)
 
@@ -397,8 +397,8 @@ def writeARefCopy(refEToCopy, newName, newRefInfo, prefix):
 	# Created a sub-element for device in reference
 	newDeviceEle = SubElement(newRefEle, 'Device')
 	newDeviceEle.text = device
-	# if stretch == '1':
-	# 	newDeviceEle.set('Device Stretch', 'True')
+	if stretch == '1':
+		newDeviceEle.set('Stretch', 'True')
 	# Formatting xml text so it prints nicly 
 	indent(newRefEle, 1)
 	# Return the reference(address) of the new reference element
