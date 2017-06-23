@@ -383,7 +383,7 @@ def readSheetAndModifyXML(filePath):
 
 	# Split file path into folder path and file name without extension
 	folderPath, fileName = splitFileFolderAndName(filePath)
-	# Create an excelRead object
+	# Create an excelSheet object
 	excelRead = excelSheet(None)
 	# Read excel spreadsheet
 	xmlPath, refExcelDict, error = excelRead.readExcelSheet(filePath)
